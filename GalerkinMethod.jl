@@ -19,14 +19,14 @@ function GalerkinMethod(f, heat_conduction, h, L, qb, pb)
     
     K = zeros((length(x) - 1, length(x) - 1))
     
-    K[1, 1] = (1/h)*GaussianQuadrature(heat_conduction, x[1], x[2])
+    K[1, 1] = (1/h^2)*GaussianQuadrature(heat_conduction, x[1], x[2])
     
     for i in 1:length(x) - 1
         if (i > 1) 
             K[i, i] = ((1/h)^2)*(GaussianQuadrature(heat_conduction, x[i - 1], x[i]) + GaussianQuadrature(heat_conduction, x[i], x[i + 1]))
         end
         if (i < length(x) - 1) 
-            K[i, i + 1] = (-(1/h)^2)*GaussianQuadrature(heat_conduction, x[i], x[i + 1])
+            K[i, i + 1] = -((1/h)^2)*GaussianQuadrature(heat_conduction, x[i], x[i + 1])
             K[i + 1, i] = K[i, i + 1]
         end
     end
@@ -37,13 +37,16 @@ function GalerkinMethod(f, heat_conduction, h, L, qb, pb)
     F = zeros(length(x) - 1, 1)
     F[1] = (h/3)*vetor_f[1] + (h/6)*vetor_f[2] + qb
     
-    for i in 2:length(x) - 2
+    for i in 2:length(x) - 1
         F[i] = (h/6)*vetor_f[i - 1] + (2*h/3)*vetor_f[i] + (h/6)*vetor_f[i+1]
     end
     
     F[length(x) - 1] = (h/6)*vetor_f[length(x) - 2] + (2*h/3)*vetor_f[length(x) - 1] + (h/6)*vetor_f[length(x)] + (pb/h^2)*GaussianQuadrature(heat_conduction, x[length(x)-1], x[length(x)])
     
-    return F\K
+    coef = K\F
+    coef = [coef; pb]
+    
+    return coef
 
 end
 
